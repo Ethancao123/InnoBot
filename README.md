@@ -1,2 +1,2 @@
 # InnoBot
-LiDAR based robot made at Innovusion Internship
+ROS based LiDAR robot made at Innovusion Internship
