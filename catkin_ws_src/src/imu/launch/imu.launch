@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+	<node pkg="tf" type="static_transform_publisher" name="imu_to_base" 
+		args="0.05 0 0.33 0 0 0 base_link imu_link 50" />
+	<node pkg = "imu" type="imu_test.py" name="imu_publisher"/>
+</launch>	 

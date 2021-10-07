@@ -1,0 +1,103 @@
+DWAPlannerROS: {acc_lim_theta: 2.5, acc_lim_trans: 2.5, acc_lim_x: 2.5, acc_lim_y: 2.5,
+  angular_sim_granularity: 0.1, forward_point_distance: 0.325, goal_distance_bias: 0.8,
+  max_scaling_factor: 0.2, max_vel_theta: 1.0, max_vel_trans: 0.4, max_vel_x: 0.5,
+  max_vel_y: 0.0, min_vel_theta: 0.5, min_vel_trans: 0.2, min_vel_x: -0.2, min_vel_y: 0.0,
+  occdist_scale: 0.01, oscillation_reset_angle: 0.2, oscillation_reset_dist: 0.05,
+  path_distance_bias: 1.0, prune_plan: false, restore_defaults: false, scaling_speed: 0.25,
+  sim_granularity: 0.025, sim_time: 1.7, stop_time_buffer: 0.2, theta_stopped_vel: 0.1,
+  trans_stopped_vel: 0.1, twirling_scale: 0.0, use_dwa: true, vth_samples: 20, vx_samples: 6,
+  vy_samples: 10, xy_goal_tolerance: 0.3, yaw_goal_tolerance: 7.0}
+TrajectoryPlannerROS: {acc_lim_theta: 1, acc_lim_x: 0.5, dwa: true, gdist_scale: 0.8,
+  heading_lookahead: 0.325, holonomic_robot: false, max_vel_theta: 1, max_vel_x: 0.3,
+  meter_scoring: true, min_in_place_vel_theta: 0.5, min_vel_theta: 1, min_vel_x: 0.1,
+  occdist_scale: 0.01, pdist_scale: 0.6, xy_goal_tolerance: 0.15, yaw_goal_tolerance: 0.3}
+aggressive_reset: {reset_distance: 1.84}
+base_global_planner: navfn/NavfnROS
+base_local_planner: dwa_local_planner/DWAPlannerROS
+clearing_rotation_allowed: false
+conservative_reset: {reset_distance: 3.0}
+conservative_reset_dist: 3.0
+controller_frequency: 14.0
+controller_patience: 5.0
+global_costmap:
+  footprint: ''
+  footprint_padding: 0.01
+  global_costmap: {global_frame: map, height: 100.0, publish_frequency: 0.5, resolution: 0.1,
+    robot_base_frame: base_link, rolling_window: true, static_map: true, update_frequency: 1.0,
+    width: 100.0}
+  height: 100
+  inflation_layer: {cost_scaling_factor: 1.0, enabled: true, inflate_unknown: false,
+    inflation_radius: 0.15}
+  inflation_radius: 0.15
+  observation_sources: scan
+  obstacle_layer:
+    combination_method: 99
+    enabled: true
+    footprint_clearing_enabled: false
+    max_obstacle_height: 2.0
+    observation_sources: scan
+    obstacle_range: 20
+    raytrace_range: 20
+    scan: {clearing: true, data_type: LaserScan, marking: true, sensor_frame: scan,
+      topic: scan}
+  obstacle_range: 20
+  origin_x: -15.0
+  origin_y: -15.0
+  plugins:
+  - {name: obstacle_layer, type: 'costmap_2d::ObstacleLayer'}
+  - {name: inflation_layer, type: 'costmap_2d::InflationLayer'}
+  publish_frequency: 1.0
+  raytrace_range: 20
+  resolution: 0.05
+  robot_radius: 0.15
+  scan: {clearing: true, data_type: LaserScan, marking: true, sensor_frame: scan,
+    topic: scan}
+  transform_tolerance: 0.3
+  update_frequency: 5.0
+  width: 100
+local_costmap:
+  footprint: ''
+  footprint_padding: 0.01
+  height: 1
+  inflation_layer: {cost_scaling_factor: 1.0, enabled: true, inflate_unknown: false,
+    inflation_radius: 0.15}
+  inflation_radius: 0.15
+  local_costmap: {global_frame: odom, height: 30.0, publish_frequency: 5.0, resolution: 0.1,
+    robot_base_frame: base_link, rolling_window: true, static_map: false, update_frequency: 1.0,
+    width: 30.0}
+  observation_sources: scan
+  obstacle_layer:
+    combination_method: 99
+    enabled: true
+    footprint_clearing_enabled: false
+    max_obstacle_height: 2.0
+    observation_sources: scan
+    obstacle_range: 20
+    raytrace_range: 20
+    scan: {clearing: true, data_type: LaserScan, marking: true, sensor_frame: scan,
+      topic: scan}
+  obstacle_range: 20
+  origin_x: -0.5
+  origin_y: -0.5
+  plugins:
+  - {name: obstacle_layer, type: 'costmap_2d::ObstacleLayer'}
+  - {name: inflation_layer, type: 'costmap_2d::InflationLayer'}
+  publish_frequency: 1.0
+  raytrace_range: 20
+  resolution: 0.05
+  robot_radius: 0.15
+  scan: {clearing: true, data_type: LaserScan, marking: true, sensor_frame: scan,
+    topic: scan}
+  transform_tolerance: 0.3
+  update_frequency: 5.0
+  width: 1
+make_plan_add_unreachable_goal: true
+make_plan_clear_costmap: true
+max_planning_retries: -1
+oscillation_distance: 0.5
+oscillation_timeout: 0.0
+planner_frequency: 5.0
+planner_patience: 5.0
+recovery_behavior_enabled: true
+restore_defaults: false
+shutdown_costmaps: false

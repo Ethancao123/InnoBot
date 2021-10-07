@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <!-- all units are in standard ROS units found at https://www.ros.org/reps/rep-0103.html -->
+
+  <!-- arguments for the differential drive package -->
+    <!-- Encoder ticks per meter of travel -->
+    <arg name="ticks_meter" value="3385"/>
+    <!-- Wheel to wheel distance -->
+    <arg name="base_width" value="0.275"/>
+    <!-- Proportional constant of the PID loop -->
+    <arg name="PID_p" value="750"/>
+    <!-- Integral constant of the PID loop -->
+    <arg name="PID_i" value="200"/>
+    <!-- Derivative constant of the PID loop -->
+    <arg name="PID_d" value="20"/>
+    <!-- Lowest value to send to motors (full speed backwards) -->
+    <arg name="minimum_output" value="-255"/>
+    <!-- Highest value to send to motors (full speed forwards) -->
+    <arg name="maximum_output" value="255"/>
+    <!-- Frequency to publish motor messages -->
+    <arg name="update_rate" value="30"/>
+    <!-- How long before the wheels automatically stop -->
+    <arg name="timeout" value="999999"/>
+    <!-- The number of points to include in the PID calculation -->
+    <arg name="rolling_points" value='10'/>
+
+  <!-- arguments for the joystick package -->
+    <!-- Deadzone of the controller joystick -->
+    <arg name="joy_deadzone" value="0.12"/>
+    <!-- Port that the controller is connected to -->
+    <arg name="joy_port" value="/dev/input/js0"/>
+    <!-- Label of the axis that controls forward, backward motion -->
+    <arg name="joy_linear_axis" value="1"/>
+    <!-- Label of the axis that controls turning -->
+    <arg name="joy_angular_axis" value = "0"/>
+    <!-- Maximum linear speed of the robot -->
+    <arg name="joy_linear_scale" value = "1"/>
+    <!-- Maxium angular speed of the robot -->
+    <arg name="joy_angular_scale" value = "1.5"/>
+
+  <!-- arguments for the rosserial package -->
+    <!-- Baudrate to communicate with Arduino -->
+    <arg name="arduino_baudrate" value = "50000"/>
+    <!-- Port the Arduino is found on -->
+    <arg name="arduino_port" value = "/dev/ttyACM0"/>
+
+
+  <!-- Physical measurements of the robot -->
+    <!-- Front, back offset of the lidar -->
+    <arg name="lidar_x" value="0.01"/>
+    <!-- Left, right offset of the lidar -->
+    <arg name="lidar_y" value= "0"/>
+    <!-- Up, down offset of the lidar -->
+    <arg name="lidar_z" value="0.3"/>
+    <!-- Front, back offset of the IMU -->
+    <arg name="imu_x" value="0.05"/>
+    <!-- Left, right offset of the IMU -->
+    <arg name="imu_y" value="0"/>
+    <!-- Up, down offset of the IMU -->
+    <arg name="imu_z" value="0.33"/>
+
+
+    <param name="/use_sim_time" value="false"/>
+
+
+
+
+
+  <!-- Transformation from the lidar frame to the base link frame -->
+  <node pkg="tf" type="static_transform_publisher" name="lidar_to_base_publisher" args="$(arg lidar_x) $(arg lidar_y) $(arg lidar_z) 0 -1.57 3.14 base_link innovusion 20"/>
+
+  <!-- Transformation from the 2D projection frame to the base link frame -->
+  <node pkg="tf" type="static_transform_publisher" name="scan_to_base_publisher" args="0 0 0 0 0 0 base_link scan 20"/>
+
+  <!-- Transformation from the imu frame to the base link frame -->
+  <node pkg="tf" type="static_transform_publisher" name="imu_to_base" args="$(arg imu_x) $(arg imu_y) $(arg imu_z) 0 0 0 base_link imu_link 20"/>
+
+  <!-- Starts the differential drive package -->
+  <node pkg="differential_drive" type="diff_tf.py" name="odom_publisher"/>
+
+  <!-- Creates the PID node for the left wheel -->
+  <node pkg="differential_drive" type="pid_velocity.py" name="lpid_velocity">
+    <remap from="wheel" to="lwheel"/>
+    <remap from="motor_cmd" to="lwheel_cmd"/>
+    <remap from="wheel_vtarget" to="lwheel_vtarget"/>
+    <remap from="wheel_vel" to="lwheel_vel"/>
+    <param name="Kp" value="$(arg PID_p)" type="double"/>
+    <param name="Ki" value="$(arg PID_i)" type="double"/>
+    <param name="Kd" value="$(arg PID_d)" type="double"/>
+    <param name="out_min" value="$(arg minimum_output)" type="int"/>
+    <param name="out_max" value="$(arg maximum_output)" type="int"/>
+    <param name="rate" value="$(arg update_rate)" type="int"/>
+    <param name="timeout_ticks" value="$(arg timeout)" type="int"/>
+    <param name="rolling_pts" value="$(arg rolling_points)" type = "int"/>
+  </node>
+
+  <!-- Creates the PID node for the right wheel -->
+  <node pkg="differential_drive" type="pid_velocity.py" name="rpid_velocity">
+      <remap from="wheel" to="rwheel"/>
+      <remap from="motor_cmd" to="rwheel_cmd"/>
+      <remap from="wheel_vtarget" to="rwheel_vtarget"/>
+      <remap from="wheel_vel" to="rwheel_vel"/>
+      <param name="Kp" value="$(arg PID_p)" type="double"/>
+      <param name="Ki" value="$(arg PID_i)" type="double"/>
+      <param name="Kd" value="$(arg PID_d)" type="double"/>
+      <param name="out_min" value="$(arg minimum_output)" type="int"/>
+      <param name="out_max" value="$(arg maximum_output)" type="int"/>
+      <param name="rate" value="$(arg update_rate)" type="int"/>
+      <param name="timeout_ticks" value="$(arg timeout)" type="int"/>
+      <param name="rolling_pts" value="$(arg rolling_points)" type = "int"/>
+  </node>
+
+  <!-- Creates node that converts cmd_vel to motor speeds -->
+  <node pkg="differential_drive" type="twist_to_motors.py" name="twist_to_motors" output="screen">
+    <remap from="twist" to="cmd_vel"/>
+  </node>
+
+
+  <!-- Creates a joystick node -->
+  <node respawn="true" pkg="joy" type="joy_node" name="turtle_joy">
+    <param name="dev" type="string" value="$(arg joy_port)"/>
+    <param name="deadzone" value="$(arg joy_deadzone)"/>
+  </node>
+
+ <!-- Creates a teleoperation node -->
+  <param name="axis_linear" value="$(arg joy_linear_axis)" type="int"/>
+  <param name="axis_angular" value="$(arg joy_angular_axis)" type="int"/>
+  <param name="scale_linear" value="$(arg joy_linear_scale)" type="double"/>
+  <param name="scale_angular" value="$(arg joy_angular_scale)" type="double"/>
+  <node pkg="learning_joy" type="turtle_teleop_joy" name="teleop"/>
+
+  <!-- Creates a node which publishes IMU data -->
+	<node pkg="imu" type="imu_test.py" name="imu_publisher"/>
+  
+  
+  
+  <!-- Creates a node that communicates with the Arduino -->
+  <node pkg="rosserial_python" type="serial_node.py" name="serial_node">
+    <param name="port" value="$(arg arduino_port)"/>
+    <param name="baud" value="$(arg arduino_baudrate)"/>
+  </node>
+
+  <!-- Starts an RViz session -->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d /home/demo/catkin_ws/src/robot/cfg/robot.rviz" output="screen"/>
+
+  <!-- Starts a rqt_reconfigure session -->
+  <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" output="screen"/>
+
+  <!-- Loads move base parameters from a yaml file -->
+  <rosparam file="/home/demo/catkin_ws/src/robot/cfg/move_base.yaml" command="load"/>
+
+  <!-- Starts a node that converts a 3D pointcloud to a 2D laserscan -->
+  <include file="/opt/ros/melodic/share/pointcloud_to_laserscan/launch/sample_node.launch"/>
+
+  <!-- Creates a gmapping node -->
+  <node name="gmapping" pkg="gmapping" type="slam_gmapping"/>
+  
+  <!-- Starts navigation nodes -->
+  <include file="/home/demo/catkin_ws/src/robot/launch/move_base.launch"/>
+
+  <!-- Starts an innovusion lidar node -->
+  <include file="/home/demo/inno-apps/apps/ros/src/inno_lidar/innovusion_pointcloud/launch/innovusion_points.launch"/>
+</launch>
